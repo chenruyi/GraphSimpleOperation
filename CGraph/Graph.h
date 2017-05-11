@@ -1,8 +1,7 @@
 #pragma once
 #include<stack>
 
-#include<queue>
-#include<iostream>
+
 #define MAX_VERTEX_NUM 20	//最大顶点数
 
 #define MAX_NAME_LEN 20		//景点名字最大长度
@@ -23,7 +22,6 @@ typedef struct Path
 {
 	int vexs[MAX_VERTEX_NUM];//保存一条路径
 	Path *next;
-
 }*PathList;
 
 
@@ -47,7 +45,12 @@ public:
 	//void DFS(int nVex, bool bVisted[], PathList &pList, int &index);//
 	void DFS(int nVex, bool bVisted[], PathList &pList, int &index,int aPath[]);//
 	void DFSTraverse(int nVex, PathList &pList);
-	int FindShortPath(int nVexStart, int nVexEnd, Edge* &aPath);
+	//改进算法
+	int FindShortPath(int nVexStart, int nVexEnd, Edge aPath[]);
+	//原算法
+	int FindShortPath(int nVexStart, int nVexEnd,  int Path[]);
+	int MiniSpanTree(Edge aPath[]);
+
 	CGraph();
 	~CGraph();
 };

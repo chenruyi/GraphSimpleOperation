@@ -57,7 +57,12 @@ void CTourism::CreateGraph()
 }
 
 
+inline void ShowEdge(Edge eg)
+{
+	char V1 = (char)eg.vex1 + 'A', V2 = (char)eg.vex2 + 'A';
+	cout << V1 << "区->" << V2 << "区" << "\t" << eg.weight << "米" << endl;
 
+}
 void CTourism::GetSpotInfo(void) 
 {
 	//获得所有的景点信息
@@ -82,67 +87,20 @@ void CTourism::GetSpotInfo(int ch)
 	i = m_Graph.FindEdge(ch, edge);
 	for (int j = 0; j <i; j++)
 	{
-		cout << "<" << edge[j].vex1 << "," << edge[j].vex2 << ">  =" << edge[j].weight << endl;
+		ShowEdge(edge[j]);
+		//cout << "<" << edge[j].vex1 << "," << edge[j].vex2 << ">  =" << edge[j].weight << endl;
 	}
 
 }
-inline void ShowPathList(PathList pList)
-{
-	
-	for (int i = 1; pList!= NULL; i++)
+inline void ShowPathList(PathList pList,const int n)
+{		
+	char ch[MAX_VERTEX_NUM];
+	for (int i = 0; i < n; i++)
 	{
-		int n = 7;
-		
-		cout << "路线" << i << ": ";
-		for (int j = 0; j<n; j++)
-		{
-			switch ((pList->vexs[j]))
-			{
-			case 0:
-			{
-				cout << "A区-->";
-				break;
-			}
-			case 1:
-			{
-				cout << "B区-->";
-				break;
-			}
-			case 2:
-			{
-				cout << "C区-->";
-				break;
-			}
-			case 3:
-			{
-				cout << "D区-->";
-				break;
-			}
-			case 4:
-			{
-				cout << "E区-->";
-				break;
-			}
-			case 5:
-			{
-				cout << "F区-->";
-				break;
-			}
-			case 6:
-			{
-				cout << "G区-->";
-				break;
-			}
-			default:
-			{
-				cout << "\b\b\b\b\b\b\b          "; 
-			}
-			}
-		}
-		cout << "\b\b\b     \n";
-		pList = pList->next;
+		ch[i] = pList->vexs[i] + 'A';
+		cout << ch[i] << "区-->";
 	}
-
+	cout << "\b\b\b     \n";
 }
 void CTourism::TravelPath()
 {
@@ -163,21 +121,24 @@ void CTourism::TravelPath()
 			continue;
 	}
 	PathList plist = (PathList)malloc(sizeof(PathList));
-	plist->next = NULL;
-	
+	plist->next = NULL;	
+
 	m_Graph.DFSTraverse(pos, plist);
-	
-	if (plist != NULL)
-	{
-		ShowPathList(plist);
+
+	int i = 1, n = this->m_Graph.GetVexNum();
+	while ( plist->next != NULL)
+	{		
+		cout << "路线" << i << ":";
+		ShowPathList(plist,n);
+		plist = plist->next;
+		i++;
 	}
-	
 }
 
 void CTourism::FindShortPath(void)
 {
-	int nVexStart, nVexEnd, pathLength;
-	Edge *edge = (Edge*)malloc(sizeof(Edge)*m_Graph.GetVexNum());
+	int nVexStart, nVexEnd, pathLength=0;
+	
 	cout << "0--A区" << "\n"
 		<< "1--B区" << "\n"
 		<< "2--C区" << "\n"
@@ -189,9 +150,28 @@ void CTourism::FindShortPath(void)
 	cin >> nVexStart;
 	cout << "请输入终点的编号：";
 	cin >> nVexEnd;
-	 pathLength=m_Graph.FindShortPath(nVexStart, nVexEnd,edge);
-	 
-	 //ShowPathList();
+	int Path[MAX_VERTEX_NUM];
+	Edge edge[MAX_VERTEX_NUM];	
+	int n = m_Graph.FindShortPath(nVexStart, nVexEnd, edge);	
+	 for (int i = 0; i < n; i++)
+	 {
+		 ShowEdge(edge[i]);
+		 pathLength += edge[i].weight;
+	 }
+	 cout << "最短路径长度为：" << pathLength << endl;
+	
+}
+
+
+void CTourism::DesignPath(void)
+{
+	Edge edge[MAX_VERTEX_NUM];
+	int k=m_Graph.MiniSpanTree(edge);
+	cout << "在以下景点之间铺设电路：" << endl;
+	for (int i=0;i<k; i++)
+	{
+		ShowEdge(edge[i]);
+	}	
 }
 
 CTourism::CTourism()

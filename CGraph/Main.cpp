@@ -58,7 +58,8 @@ int main()
 		}
 		case 5:
 		{
-
+			cout << "--------铺设电路规划-----------"<<endl;
+			tourisum.DesignPath();
 			break;
 		}
 		case 0:

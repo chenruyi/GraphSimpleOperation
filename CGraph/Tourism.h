@@ -13,6 +13,7 @@ public:
 	void GetSpotInfo(int ch);
 	void TravelPath();
 	void FindShortPath(void);
+	void DesignPath(void);
 	CTourism();
 	~CTourism();
 };
