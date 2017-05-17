@@ -150,15 +150,23 @@ void CTourism::FindShortPath(void)
 	cin >> nVexStart;
 	cout << "请输入终点的编号：";
 	cin >> nVexEnd;
-	int Path[MAX_VERTEX_NUM];
+	
 	Edge edge[MAX_VERTEX_NUM];	
 	int n = m_Graph.FindShortPath(nVexStart, nVexEnd, edge);	
-	 for (int i = 0; i < n; i++)
-	 {
-		 ShowEdge(edge[i]);
-		 pathLength += edge[i].weight;
-	 }
-	 cout << "最短路径长度为：" << pathLength << endl;
+	if (n > 0)
+	{
+		for (int i = 0; i < n; i++)
+		{
+			ShowEdge(edge[i]);
+			pathLength += edge[i].weight;
+		}
+		cout << "最短路径长度为：" << pathLength << endl;
+	}
+	else 
+	{
+		
+		cout << "未查到，请确定是否输入错误" << endl;
+	}
 	
 }
 
