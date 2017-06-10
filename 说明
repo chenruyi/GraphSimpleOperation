@@ -1,0 +1,150 @@
+（1）类设计
+程序中使用两个类：CGraph类和CTourism类。CGraph类用于实现图的数据结构和相关操作，CTourism类实现系统的主要功能。
+   1）CGraph类，程序的数据结构类，拥有成员变量
+int m_aAdjMatrix[MAX_VERTEX_NUM][MAX_VERTEX_NUM];//---------邻接矩阵
+	Vex m_aVexs[MAX_VERTEX_NUM];				//-----------顶点数组
+	int m_nVexNum;			//---------顶点个数
+利用邻接矩阵保存图的相关信息。
+邻接矩阵中用INT16_MAX表示两个顶点不相邻。
+成员函数实现相关图的相关操作，如：DFS（深度优先搜索），FindShortPath（根据Floyd算法查找两点之间的最短路径），MiniSpanTree（根据Prim算法，求图的最小生成树）
+  2）CTourism类，景点旅游信息管理功能类，用于实现系统的主要功能。成员变量：CGraph m_Graph；
+ void GetSpotInfo();//---------打印景点的信息，“创建图”
+ void GetSpotInfo(int ch);//----查询指定景点信息（到相邻景点距离）“查询景点”功能
+ void TravelPath();//-----从起始景点开始，遍历所有景点，“导航”功能
+ void FindShortPath();//--查找两个景点之间的最短路径，“搜索最短路径”
+ void DesignPath();//--设计出一条铺设线最短的电路，“铺设电路规划”
+
+（2）景点信息结构体Vex;储存景点的信息
+struct Vex
+{
+	int num;			//景点编号
+	char name[MAX_NAME_LEN];		//景点名字
+	char desc[MAX_DESC_LEN];	//景点介绍
+};
+ （3）边信息结构体Edge;
+struct Edge
+{
+    int vex1;	//边的第一个顶点
+	    int vex2;	//边的第二个顶点
+    int weight; //权值
+};
+（4）图的路径信息结构体：
+typedef struct Path 
+{
+	int vexs[MAX_VERTEX_NUM];//保存一条路径
+	Path *next;
+}*PathList;  
+2.核心算法设计
+1）算法：深度优先搜索遍历图
+Input:      int V,            // 起始顶点编号,   
+            bool bVisited[]   //记录顶点是否被遍历过
+            int &nIndex;      //记录遍历的深度
+Outout:    PathList &pList,   //引用传参，得到的结果，
+Process:
+void CGraph::DFS(int v, bool bVisited[], PathList &pList, int &index,int aPath[])
+{	
+	bVisited[v] = true;
+	aPath[index++] = v;
+	
+	bool flag = true;//所有顶点是否都被访问
+	for (int j = 0; j < this->m_nVexNum; j++)
+	{
+		if (bVisited[j] == false)
+		{
+			flag = false; break;
+		}
+	}
+	if (flag)
+	{	
+		for (int j = 0; j < this->m_nVexNum; ++j)
+		{
+			pList->vexs[j] = aPath[j];
+			
+		}
+		pList->next = (PathList)malloc(sizeof(Path));
+		pList->next->next = NULL;
+		pList = pList->next;
+	}
+	else
+	{
+		for (int i = 0; i < this->m_nVexNum; i++)
+		{			
+			if ((m_aAdjMatrix[v][i] <INT16_MAX || m_aAdjMatrix[i][v] < INT16_MAX) && !bVisited[i])
+			{
+				DFS(i, bVisited, pList,index,aPath);
+				bVisited[i] = false;
+				index--;
+			}
+		}
+	}
+}
+2)Floyd算法，求最短路径
+Input:    int nVexStart,               //起点编号
+          int nVexEnd             //终点编号
+Output:
+          Edge aPath[]                  //遍历结果，最短路径
+          int z                         //遍历结果， aPath数组的长度；
+Process：
+int CGraph::FindShortPath(int nVexStart, int nVexEnd, Edge aPath[])
+{
+	int v = 0, w = 0, u = 0, i = 0;
+	int D[MAX_VERTEX_NUM][MAX_VERTEX_NUM];
+	aPath[i++].vex1 = nVexStart;
+	string Ph[MAX_VERTEX_NUM][MAX_VERTEX_NUM];
+	
+	for (v = 0; v < this->m_nVexNum; v++)
+	{
+		for (w = 0; w < this->m_nVexNum; w++)
+		{
+			D[v][w] = this->m_aAdjMatrix[v][w];
+			if (D[v][w] < INT16_MAX)
+			{
+				if (v == w) continue;
+				//v到w有直接路径
+				Ph[v][w]= Int2Str(v)+Int2Str(w);//Int2Str:自己编写的函数
+				Ph[w][v]= Int2Str(w)+ Int2Str(v);
+			}			
+		}		
+	}
+	for (u = 0; u < this->m_nVexNum; u++)
+	{
+		for (v = 0; v < this->m_nVexNum; v++)
+		{
+			for (w = 0; w < this->m_nVexNum; w++)
+			{
+				if (D[v][u] + D[u][w] < D[v][w])//v经u到w更短
+				{
+					D[v][w] = D[v][u] + D[u][w];	
+					Ph[v][w] = Ph[v][u];
+					Ph[v][w] += Ph[u][w];
+				}
+			}
+		}		
+	}	
+	//Ph为所有最短路径信息	
+	string str = Ph[nVexStart][nVexEnd];
+	int m,z,n = str.length() - 1;
+	for ( m = 0,z=0; m <= n;m+=2,z++ )
+	{
+		aPath[z].vex1 = str[m] - '0';
+		aPath[z].vex2 = str[m+1] - '0';		aPath[z].weight=this->m_aAdjMatrix[aPath[z].vex1][aPath[z].vex2];	
+	}	
+	return z;
+}
+
+3.测试用例设计
+在Edge.txt中储存无向图信息：然后调试每个功能，判断功能是否实现。
+
+三、主要仪器设备及耗材
+  1安装了Windows XP或Windows 7或其它版本的Windows操作系统的PC机1台
+  2 PC机系统上安装了Microsoft Visual Studio 2010开发环境
+
+第二部分：实验过程和结果（可加页）
+一、实现说明
+在Microsoft Visual Studio 2010集成开发环境中新建一个Win32控制台应用程序工程CGraph。在当前目录下创建Edge.txt和Vex.txt储存图的信息和相关景点的信息。
+Cgraph工程中新建2类，CGraph和CTourisum。建立Graph.cpp和Graph.h实现CGraph类的声明和函数的实现。建立Tourism.cpp和Tourism.h实现CTourism类的声明和成员函数的实现。  
+最后新建一个main.cpp源文件，输出菜单，创建CTourism类对象tourisum，根据输入调用tourisum的功能函数。 
+二、调试说明（调试手段、过程及结果分析）
+调试手段主要采用了Microsoft Visual Studio 2010集成开发环境中“调试（D）”菜单中的调试方法或手段。即：F5：启动调试；F11：逐语句调试；F12：逐过程调试；F9：切换断点；ctrl+B：新建断点等。
+调试过程中的问题：
+1.创建CGraph对象利用邻接矩阵储存图的信息，刚开始将图顶点不相邻的权值为0，等到查找图的最短路径时出错。原因是遍历矩阵时对权值为0的顶点判断错误。改正，创建CGraph对象时将不相邻的顶点的邻接矩阵的对应权值为INT16_MAX。
